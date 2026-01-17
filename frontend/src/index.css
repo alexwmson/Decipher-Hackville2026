@@ -9,4 +9,73 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: radial-gradient(1200px 700px at 20% 20%, rgba(34,211,238,0.14), transparent 60%),
+    radial-gradient(1000px 600px at 85% 30%, rgba(217,70,239,0.14), transparent 55%),
+    radial-gradient(900px 600px at 55% 90%, rgba(59,130,246,0.14), transparent 55%),
+    linear-gradient(180deg, #020617 0%, #030712 50%, #020617 100%);
+  color: rgba(255,255,255,0.92);
+}
+
+/* Subtle starfield */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,0.65) 0, transparent 2px),
+    radial-gradient(1px 1px at 82% 18%, rgba(255,255,255,0.55) 0, transparent 2px),
+    radial-gradient(1px 1px at 34% 78%, rgba(255,255,255,0.55) 0, transparent 2px),
+    radial-gradient(1px 1px at 63% 62%, rgba(255,255,255,0.45) 0, transparent 2px),
+    radial-gradient(1px 1px at 55% 35%, rgba(255,255,255,0.45) 0, transparent 2px);
+  opacity: 0.45;
+}
+
+/* Shared markdown styling for all rendered content (viewer + panels) */
+.markdown-content ::selection {
+  background-color: rgba(34, 211, 238, 0.35);
+}
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+  color: rgba(255,255,255,0.92);
+  font-weight: 700;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.markdown-content p {
+  margin-bottom: 0.85rem;
+}
+.markdown-content a {
+  color: rgb(34, 211, 238);
+  text-decoration: underline;
+}
+.markdown-content code {
+  background-color: rgba(255,255,255,0.08);
+  padding: 0.15em 0.35em;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.markdown-content pre {
+  background-color: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 0.9rem;
+  border-radius: 0.9rem;
+  overflow-x: auto;
+}
+.markdown-content blockquote {
+  border-left: 3px solid rgba(34, 211, 238, 0.55);
+  padding-left: 0.9rem;
+  color: rgba(255,255,255,0.78);
+}
+.markdown-content .katex-display {
+  display: block;
+  text-align: center;
+  margin: 1rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.markdown-content .katex-display > .katex {
+  display: inline-block;
+  margin: 0 auto;
 }

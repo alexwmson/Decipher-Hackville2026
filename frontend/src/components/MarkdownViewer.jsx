@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
-function MarkdownViewer({ markdown, onTextSelected }) {
+function MarkdownViewer({ markdown, onTextSelected, className = '' }) {
   const containerRef = useRef(null)
 
   useEffect(() => {
@@ -28,63 +28,21 @@ function MarkdownViewer({ markdown, onTextSelected }) {
 
   if (!markdown) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 text-center text-gray-500">
-        <p>Upload an image to see extracted content here</p>
+      <div className="text-center text-white/60 text-sm py-8">
+        Upload an image to see extracted content here
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold mb-4">Extracted Content</h2>
-      <div
-        ref={containerRef}
-        className="prose prose-sm max-w-none markdown-content"
-        style={{
-          userSelect: 'text',
-          cursor: 'text',
-          lineHeight: '1.6',
-        }}
-      >
-        <ReactMarkdown
-          remarkPlugins={[remarkMath]}
-          rehypePlugins={[rehypeKatex]}
-        >
-          {markdown}
-        </ReactMarkdown>
-      </div>
-      
-      <style>{`
-        .markdown-content ::selection {
-          background-color: #bfdbfe;
-        }
-        /* Ensure display math renders like a textbook even if prose styles interfere */
-        .markdown-content .katex-display {
-          display: block;
-          text-align: center;
-          margin: 1em 0;
-          overflow-x: auto;
-          overflow-y: hidden;
-        }
-        .markdown-content .katex-display > .katex {
-          display: inline-block;
-          margin: 0 auto;
-        }
-        .markdown-content h1,
-        .markdown-content h2,
-        .markdown-content h3 {
-          margin-top: 1.5em;
-          margin-bottom: 0.5em;
-        }
-        .markdown-content p {
-          margin-bottom: 1em;
-        }
-        .markdown-content code {
-          background-color: #f3f4f6;
-          padding: 0.2em 0.4em;
-          border-radius: 0.25rem;
-        }
-      `}</style>
+    <div
+      ref={containerRef}
+      className={['markdown-content text-white/90 text-sm leading-relaxed', className].join(' ')}
+      style={{ userSelect: 'text', cursor: 'text' }}
+    >
+      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+        {markdown}
+      </ReactMarkdown>
     </div>
   )
 }
