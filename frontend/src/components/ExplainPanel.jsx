@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
-function ExplainPanel({ text, fullText, requestId }) {
+function ExplainPanel({ text, fullText, requestId, onBusyChange }) {
   const [explanation, setExplanation] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -15,6 +15,7 @@ function ExplainPanel({ text, fullText, requestId }) {
     const fetchExplanation = async () => {
       setLoading(true)
       setError('')
+      onBusyChange?.(true)
 
       try {
         abortRef.current?.abort?.()
@@ -27,11 +28,15 @@ function ExplainPanel({ text, fullText, requestId }) {
         }, { signal: controller.signal })
         setExplanation(response.data.explanation)
       } catch (err) {
-        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') {
+          onBusyChange?.(false)
+          return
+        }
         setError(err.response?.data?.error || 'Failed to explain text')
         console.error('Explain error:', err)
       } finally {
         setLoading(false)
+        onBusyChange?.(false)
       }
     }
 

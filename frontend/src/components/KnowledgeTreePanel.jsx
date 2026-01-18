@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 
-function KnowledgeTreePanel({ text, fullText, requestId }) {
+function KnowledgeTreePanel({ text, fullText, requestId, onBusyChange }) {
   const [knowledgeTree, setKnowledgeTree] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -12,6 +12,7 @@ function KnowledgeTreePanel({ text, fullText, requestId }) {
     const fetchKnowledgeTree = async () => {
       setLoading(true)
       setError('')
+      onBusyChange?.(true)
 
       try {
         abortRef.current?.abort?.()
@@ -24,11 +25,15 @@ function KnowledgeTreePanel({ text, fullText, requestId }) {
         }, { signal: controller.signal })
         setKnowledgeTree(response.data.knowledgeTree)
       } catch (err) {
-        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') {
+          onBusyChange?.(false)
+          return
+        }
         setError(err.response?.data?.error || 'Failed to generate knowledge tree')
         console.error('Knowledge tree error:', err)
       } finally {
         setLoading(false)
+        onBusyChange?.(false)
       }
     }
 

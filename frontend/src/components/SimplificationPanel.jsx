@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
-function SimplificationPanel({ text, fullText, requestId }) {
+function SimplificationPanel({ text, fullText, requestId, onBusyChange }) {
   const [simplified, setSimplified] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -15,6 +15,7 @@ function SimplificationPanel({ text, fullText, requestId }) {
     const fetchSimplified = async () => {
       setLoading(true)
       setError('')
+      onBusyChange?.(true)
 
       try {
         abortRef.current?.abort?.()
@@ -28,11 +29,15 @@ function SimplificationPanel({ text, fullText, requestId }) {
         setSimplified(response.data.simplified)
       } catch (err) {
         // Ignore cancellations (React 18 StrictMode can re-run effects in dev)
-        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') {
+          onBusyChange?.(false)
+          return
+        }
         setError(err.response?.data?.error || 'Failed to simplify text')
         console.error('Simplify error:', err)
       } finally {
         setLoading(false)
+        onBusyChange?.(false)
       }
     }
 

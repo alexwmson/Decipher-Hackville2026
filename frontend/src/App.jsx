@@ -15,6 +15,7 @@ function App() {
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
   const [selectedText, setSelectedText] = useState('')
   const [activeTool, setActiveTool] = useState(null) // 'simplify' | 'explain' | 'tree' | null
+  const [toolBusy, setToolBusy] = useState(false)
   const [simplifyRequestId, setSimplifyRequestId] = useState(0)
   const [knowledgeTreeRequestId, setKnowledgeTreeRequestId] = useState(0)
   const [explainRequestId, setExplainRequestId] = useState(0)
@@ -33,6 +34,7 @@ function App() {
   const resetToolState = () => {
     setSelectedText('')
     setActiveTool(null)
+    setToolBusy(false)
     setSimplifyRequestId(0)
     setKnowledgeTreeRequestId(0)
     setExplainRequestId(0)
@@ -280,9 +282,10 @@ function App() {
 
                     <div className="grid grid-cols-3 gap-3">
                       <button
-                        disabled={!canUseTools}
+                        disabled={!canUseTools || toolBusy}
                         onClick={() => {
                           if (!canUseTools) return
+                          if (toolBusy) return
                           setActiveTool('simplify')
                           setSimplifyRequestId((x) => x + 1)
                         }}
@@ -291,9 +294,10 @@ function App() {
                         Simplify
                       </button>
                       <button
-                        disabled={!canUseTools}
+                        disabled={!canUseTools || toolBusy}
                         onClick={() => {
                           if (!canUseTools) return
+                          if (toolBusy) return
                           setActiveTool('explain')
                           setExplainRequestId((x) => x + 1)
                         }}
@@ -302,9 +306,10 @@ function App() {
                         Explain
                       </button>
                       <button
-                        disabled={!canUseTools}
+                        disabled={!canUseTools || toolBusy}
                         onClick={() => {
                           if (!canUseTools) return
+                          if (toolBusy) return
                           setActiveTool('tree')
                           setKnowledgeTreeRequestId((x) => x + 1)
                         }}
@@ -329,13 +334,28 @@ function App() {
                     )}
 
                     {activeTool === 'simplify' && canUseTools && (
-                      <SimplificationPanel text={selectedText} fullText={allPagesText} requestId={simplifyRequestId} />
+                      <SimplificationPanel
+                        text={selectedText}
+                        fullText={allPagesText}
+                        requestId={simplifyRequestId}
+                        onBusyChange={setToolBusy}
+                      />
                     )}
                     {activeTool === 'explain' && canUseTools && (
-                      <ExplainPanel text={selectedText} fullText={allPagesText} requestId={explainRequestId} />
+                      <ExplainPanel
+                        text={selectedText}
+                        fullText={allPagesText}
+                        requestId={explainRequestId}
+                        onBusyChange={setToolBusy}
+                      />
                     )}
                     {activeTool === 'tree' && canUseTools && (
-                      <KnowledgeTreePanel text={selectedText} fullText={allPagesText} requestId={knowledgeTreeRequestId} />
+                      <KnowledgeTreePanel
+                        text={selectedText}
+                        fullText={allPagesText}
+                        requestId={knowledgeTreeRequestId}
+                        onBusyChange={setToolBusy}
+                      />
                     )}
                   </div>
                 </GlassPanel>
