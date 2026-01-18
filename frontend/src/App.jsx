@@ -188,9 +188,35 @@ function App() {
               ) : null}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:h-full lg:min-h-0">
-              {/* Left column: extracted (gets the most vertical room) */}
-              <div className="lg:col-span-7 lg:min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-12 lg:grid-rows-[auto,1fr] gap-4 lg:h-full lg:min-h-0">
+              {/* Mobile order: Add pages -> Extracted -> Output. Desktop stays 2-column. */}
+
+              {/* Add additional pages (right column, top on desktop; first on mobile) */}
+              <div className="order-1 lg:order-2 lg:col-span-5 lg:row-start-1">
+                <GlassPanel className="relative p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="text-xs uppercase tracking-wider text-white/50">Add additional pages</div>
+                      <div className="text-sm text-white/80 mt-1">Upload or take another photo to append a new page</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <ImageSourcePicker disabled={processing} onPick={uploadToOcr} />
+                  </div>
+
+                  {error && (
+                    <div className="mt-4 text-sm text-red-200 bg-red-500/10 border border-red-400/20 rounded-xl px-3 py-2">
+                      {error}
+                    </div>
+                  )}
+
+                  <LoadingOverlay show={processing} label="Processing..." />
+                </GlassPanel>
+              </div>
+
+              {/* Extracted (left column; spans both rows on desktop; second on mobile) */}
+              <div className="order-2 lg:order-1 lg:col-span-7 lg:row-span-2 lg:min-h-0">
                 <GlassPanel className="p-4 sm:p-5 lg:h-full flex flex-col lg:min-h-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3 shrink-0">
                     <div>
@@ -287,30 +313,9 @@ function App() {
                 </GlassPanel>
               </div>
 
-              {/* Right column: input (top) + output (bottom) */}
-              <div className="lg:col-span-5 lg:min-h-0 flex flex-col gap-4">
-                <GlassPanel className="relative p-4 sm:p-5 shrink-0">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="text-xs uppercase tracking-wider text-white/50">Add additional pages</div>
-                      <div className="text-sm text-white/80 mt-1">Upload or take another photo to append a new page</div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <ImageSourcePicker disabled={processing} onPick={uploadToOcr} />
-                  </div>
-
-                  {error && (
-                    <div className="mt-4 text-sm text-red-200 bg-red-500/10 border border-red-400/20 rounded-xl px-3 py-2">
-                      {error}
-                    </div>
-                  )}
-
-                  <LoadingOverlay show={processing} label="Processing..." />
-                </GlassPanel>
-
-                <GlassPanel className="p-4 sm:p-5 lg:flex-1 lg:min-h-0 flex flex-col">
+              {/* Output (right column bottom on desktop; third on mobile) */}
+              <div className="order-3 lg:order-3 lg:col-span-5 lg:row-start-2 lg:min-h-0">
+                <GlassPanel className="p-4 sm:p-5 lg:h-full flex flex-col lg:min-h-0">
                   <div className="text-xs uppercase tracking-wider text-white/50 mb-2 shrink-0">Output</div>
                   <div className="flex-1 lg:min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4">
                     {!activeTool && (
@@ -326,7 +331,7 @@ function App() {
                       <ExplainPanel text={selectedText} fullText={allPagesText} requestId={explainRequestId} />
                     )}
                     {activeTool === 'tree' && canUseTools && (
-                      <KnowledgeTreePanel text={selectedText} requestId={knowledgeTreeRequestId} />
+                      <KnowledgeTreePanel text={selectedText} fullText={allPagesText} requestId={knowledgeTreeRequestId} />
                     )}
                   </div>
                 </GlassPanel>

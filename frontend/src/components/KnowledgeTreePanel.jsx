@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 
-function KnowledgeTreePanel({ text, requestId }) {
+function KnowledgeTreePanel({ text, fullText, requestId }) {
   const [knowledgeTree, setKnowledgeTree] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -18,7 +18,10 @@ function KnowledgeTreePanel({ text, requestId }) {
         const controller = new AbortController()
         abortRef.current = controller
 
-        const response = await axios.post('/api/knowledge-tree', { text }, { signal: controller.signal })
+        const response = await axios.post('/api/knowledge-tree', {
+          highlightedText: text,
+          fullText,
+        }, { signal: controller.signal })
         setKnowledgeTree(response.data.knowledgeTree)
       } catch (err) {
         if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return

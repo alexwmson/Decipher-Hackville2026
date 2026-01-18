@@ -9,13 +9,17 @@ const router = express.Router();
  */
 router.post('/', async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, highlightedText, fullText } = req.body;
+    const selected = highlightedText || text;
 
-    if (!text) {
+    if (!selected) {
       return res.status(400).json({ error: 'No text provided' });
     }
 
-    const prompt = `Analyze the following text and create a prerequisite knowledge tree showing what concepts a student needs to understand before learning this material.
+    const prompt = `You are given a highlighted excerpt from a textbook page. Create a prerequisite knowledge tree showing what concepts a student needs BEFORE they can understand the highlighted excerpt.
+
+CONTEXT (entire extracted page(s); use for disambiguation only):
+${fullText ? fullText : '(no additional context provided)'}
 
     Return the response as a JSON object with the following structure:
     {
@@ -34,8 +38,8 @@ router.post('/', async (req, res) => {
       ]
     }
 
-    Text to analyze:
-    ${text}`;
+    HIGHLIGHTED TEXT TO ANALYZE:
+    ${selected}`;
 
     const ai = getGenAI();
     const result = await ai.models.generateContent({
