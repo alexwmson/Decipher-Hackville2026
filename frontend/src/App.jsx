@@ -196,7 +196,7 @@ function App() {
               {/* Mobile order: Add pages -> Extracted -> Output. Desktop stays 2-column. */}
 
               {/* Add additional pages (right column, top on desktop; first on mobile) */}
-              <div className="order-1 lg:order-2 lg:col-span-5 lg:row-start-1">
+              <div className="order-1 lg:order-2 lg:col-start-8 lg:col-span-5 lg:row-start-1">
                 <GlassPanel className="relative p-4 sm:p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
@@ -220,7 +220,7 @@ function App() {
               </div>
 
               {/* Extracted (left column; spans both rows on desktop; second on mobile) */}
-              <div className="order-2 lg:order-1 lg:col-span-7 lg:row-span-2 lg:min-h-0">
+              <div className="order-2 lg:order-1 lg:col-start-1 lg:col-span-7 lg:row-span-2 lg:min-h-0">
                 <GlassPanel className="p-4 sm:p-5 lg:h-full flex flex-col lg:min-h-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3 shrink-0">
                     <div>
@@ -318,7 +318,7 @@ function App() {
               </div>
 
               {/* Output (right column bottom on desktop; third on mobile) */}
-              <div className="order-3 lg:order-3 lg:col-span-5 lg:row-start-2 lg:min-h-0">
+              <div className="order-3 lg:order-3 lg:col-start-8 lg:col-span-5 lg:row-start-2 lg:min-h-0">
                 <GlassPanel className="p-4 sm:p-5 lg:h-full flex flex-col lg:min-h-0">
                   <div className="text-xs uppercase tracking-wider text-white/50 mb-2 shrink-0">Output</div>
                   <div className="flex-1 lg:min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4">
