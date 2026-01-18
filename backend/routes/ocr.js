@@ -162,6 +162,11 @@ REQUIREMENTS:
 - Do NOT add any explanations, examples, summaries, or interpretation.
 - Do NOT remove content.
 - Keep line breaks only when they appear to exist in the source (avoid "pretty" reflow).
+- Ignore non-text figures/images/diagrams/illustrations/photos. Do NOT describe them or infer their meaning.
+  - Only extract *readable text* that is actually printed on the page (including figure captions/labels if they are text).
+- If there is NO readable text/equations on the page (blank, too blurry, too dark), return EXACTLY:
+NO_TEXT_DETECTED
+(and nothing else)
 
 MATH:
 - Use $ for inline math and $$ for block math.
@@ -195,6 +200,14 @@ OUTPUT:
     });
 
     const extractedMarkdown = getText(extractionResult);
+    const extractedTrimmed = String(extractedMarkdown || '').trim();
+
+    // If OCR extracted nothing (or the model signaled it couldn't read anything), fail gracefully.
+    if (!extractedTrimmed || extractedTrimmed === 'NO_TEXT_DETECTED') {
+      return res.status(422).json({
+        error: 'No readable text detected. Try a clearer photo (more light, closer, less blur).',
+      });
+    }
 
     // STEP 2: Reformat for readability/accessibility WITHOUT changing wording/meaning.
     // This should only adjust layout (headings/spacing), never rewrite sentences.

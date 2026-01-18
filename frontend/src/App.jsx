@@ -68,6 +68,10 @@ function App() {
       })
 
       const md = resp.data.blocksMarkdown || resp.data.markdown || ''
+      if (!md || md.trim().length === 0) {
+        setError('No readable text detected. Try a clearer photo (more light, closer, less blur).')
+        return
+      }
       setPages((prev) => {
         const next = Array.isArray(prev) ? prev.slice() : []
         next.push({ markdown: md })

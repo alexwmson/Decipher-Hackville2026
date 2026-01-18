@@ -26,6 +26,7 @@ REQUIREMENTS:
 - Keep mathematical notation and equations intact.
 - Use simple language and short paragraphs.
 - If the excerpt references symbols/variables defined elsewhere on the page, use the context to explain them correctly.
+- Don't include any openings such as "Hi Im the tutor", go right to the simplification.
 
 OUTPUT:
 - Return Markdown only (no code fences, no commentary).
