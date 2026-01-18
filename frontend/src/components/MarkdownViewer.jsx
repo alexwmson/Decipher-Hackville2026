@@ -10,9 +10,31 @@ function MarkdownViewer({ markdown, onTextSelected, className = '' }) {
     const container = containerRef.current
     if (!container) return
 
+    const getCleanSelectedText = () => {
+      const selection = window.getSelection?.()
+      if (!selection || selection.rangeCount === 0) return ''
+
+      // Only react to selections inside this container
+      const anchorNode = selection.anchorNode
+      const focusNode = selection.focusNode
+      if (anchorNode && !container.contains(anchorNode)) return ''
+      if (focusNode && !container.contains(focusNode)) return ''
+
+      const range = selection.getRangeAt(0)
+      const fragment = range.cloneContents()
+
+      // KaTeX renders both visual HTML and hidden MathML. When selected, the MathML can
+      // get included too, producing duplicates like "y y". Strip it out.
+      const wrapper = document.createElement('div')
+      wrapper.appendChild(fragment)
+      wrapper.querySelectorAll('.katex-mathml').forEach((el) => el.remove())
+
+      // Normalize whitespace (DOM selection often includes line breaks from layout)
+      return (wrapper.textContent || '').replace(/\s+/g, ' ').trim()
+    }
+
     const handleMouseUp = () => {
-      const selection = window.getSelection()
-      const selectedText = selection.toString().trim()
+      const selectedText = getCleanSelectedText()
       
       if (selectedText) {
         onTextSelected(selectedText)

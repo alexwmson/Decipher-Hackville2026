@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
-function ExplainPanel({ text, requestId }) {
+function ExplainPanel({ text, fullText, requestId }) {
   const [explanation, setExplanation] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const lastHandledRequestIdRef = useRef(0)
+  const abortRef = useRef(null)
 
   useEffect(() => {
     const fetchExplanation = async () => {
@@ -15,9 +17,17 @@ function ExplainPanel({ text, requestId }) {
       setError('')
 
       try {
-        const response = await axios.post('/api/explain', { text })
+        abortRef.current?.abort?.()
+        const controller = new AbortController()
+        abortRef.current = controller
+
+        const response = await axios.post('/api/explain', {
+          highlightedText: text,
+          fullText,
+        }, { signal: controller.signal })
         setExplanation(response.data.explanation)
       } catch (err) {
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return
         setError(err.response?.data?.error || 'Failed to explain text')
         console.error('Explain error:', err)
       } finally {
@@ -27,6 +37,8 @@ function ExplainPanel({ text, requestId }) {
 
     // Only fetch when user explicitly clicks "Explain"
     if (requestId && text) {
+      if (lastHandledRequestIdRef.current === requestId) return
+      lastHandledRequestIdRef.current = requestId
       fetchExplanation()
     }
   }, [requestId])

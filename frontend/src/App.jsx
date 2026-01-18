@@ -10,7 +10,8 @@ import LoadingOverlay from './components/ui/LoadingOverlay'
 
 function App() {
   const [view, setView] = useState('landing') // 'landing' | 'main'
-  const [markdown, setMarkdown] = useState('')
+  const [pages, setPages] = useState([]) // [{ markdown: string }]
+  const [currentPageIndex, setCurrentPageIndex] = useState(0)
   const [selectedText, setSelectedText] = useState('')
   const [activeTool, setActiveTool] = useState(null) // 'simplify' | 'explain' | 'tree' | null
   const [simplifyRequestId, setSimplifyRequestId] = useState(0)
@@ -43,6 +44,8 @@ function App() {
   const uploadToOcr = async (fileOrBlob) => {
     setProcessing(true)
     setError('')
+    const fullTextForContext = pages.map((p) => p?.markdown || '').filter(Boolean).join('\n\n')
+    const highlightedTextForContext = selectedText
     resetToolState()
 
     // preview
@@ -55,13 +58,25 @@ function App() {
       const fileName =
         typeof fileOrBlob?.name === 'string' && fileOrBlob.name.length > 0 ? fileOrBlob.name : 'upload.jpg'
       formData.append('image', fileOrBlob, fileName)
+      // Provide context if the user is re-scanning from the main view.
+      formData.append('highlightedText', highlightedTextForContext || '')
+      formData.append('fullText', fullTextForContext || '')
 
       const resp = await axios.post('/api/ocr', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
       const md = resp.data.blocksMarkdown || resp.data.markdown || ''
-      setMarkdown(md)
+      setPages((prev) => {
+        const next = Array.isArray(prev) ? prev.slice() : []
+        next.push({ markdown: md })
+        return next
+      })
+      setCurrentPageIndex((prev) => {
+        // jump to newly added page
+        const base = Array.isArray(pages) ? pages.length : 0
+        return Math.max(0, base)
+      })
       setView('main')
     } catch (e) {
       setError(e.response?.data?.error || 'Failed to process image')
@@ -69,6 +84,22 @@ function App() {
       setProcessing(false)
     }
   }
+
+  const currentPageMarkdown = useMemo(() => {
+    const page = Array.isArray(pages) ? pages[currentPageIndex] : null
+    return (page?.markdown || '').trim()
+  }, [pages, currentPageIndex])
+
+  const allPagesText = useMemo(() => {
+    return (Array.isArray(pages) ? pages : [])
+      .map((p, idx) => {
+        const text = (p?.markdown || '').trim()
+        if (!text) return ''
+        return `--- Page ${idx + 1} ---\n${text}`
+      })
+      .filter(Boolean)
+      .join('\n\n')
+  }, [pages])
 
   const canUseTools = useMemo(() => selectedText && selectedText.trim().length > 0, [selectedText])
 
@@ -78,7 +109,7 @@ function App() {
         <div className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.65)]" />
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Decipher</h1>
       </div>
-      <p className="text-white/60 text-sm mt-2">Space-grade readability for tough textbook pages.</p>
+      <p className="text-white/60 text-sm mt-2">Study the indecipherable with ease.</p>
     </div>
   )
 
@@ -92,7 +123,8 @@ function App() {
               className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition"
               onClick={() => {
                 setView('landing')
-                setMarkdown('')
+                setPages([])
+                setCurrentPageIndex(0)
                 setError('')
                 setProcessing(false)
                 if (imageUrl) URL.revokeObjectURL(imageUrl)
@@ -118,7 +150,7 @@ function App() {
                       Upload a page. Get clarity.
                     </h2>
                     <p className="text-white/60 text-sm mt-2">
-                      Take a photo or upload an image. We’ll extract text + math and format it for reading.
+                      Take a photo or upload an image. We’ll extract text + equations and format it for reading.
                     </p>
                   </div>
 
@@ -159,19 +191,47 @@ function App() {
                       <div className="text-xs uppercase tracking-wider text-white/50">Extracted</div>
                       <div className="text-sm text-white/80 mt-1">Highlight text to use tools</div>
                     </div>
-                    {selectedText ? (
+                    <div className="flex items-center gap-2">
+                      {selectedText ? (
+                        <button
+                          onClick={() => setSelectedText('')}
+                          className="text-xs text-white/70 hover:text-white/90 transition"
+                        >
+                          Clear selection
+                        </button>
+                      ) : null}
+                      <div className="text-xs text-white/55">
+                        Page <span className="text-white/80">{Math.min(currentPageIndex + 1, Math.max(1, pages.length))}</span>
+                        {' '}of <span className="text-white/80">{Math.max(1, pages.length)}</span>
+                      </div>
                       <button
-                        onClick={() => setSelectedText('')}
-                        className="text-xs text-white/70 hover:text-white/90 transition"
+                        disabled={currentPageIndex <= 0}
+                        onClick={() => {
+                          const nextIdx = Math.max(0, currentPageIndex - 1)
+                          setCurrentPageIndex(nextIdx)
+                          resetToolState()
+                        }}
+                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/80 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Clear selection
+                        Prev
                       </button>
-                    ) : null}
+                      <button
+                        disabled={currentPageIndex >= pages.length - 1}
+                        onClick={() => {
+                          const nextIdx = Math.min(Math.max(0, pages.length - 1), currentPageIndex + 1)
+                          setCurrentPageIndex(nextIdx)
+                          resetToolState()
+                        }}
+                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/80 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </div>
                   </div>
 
                   {/* Scrollable extracted content that fills remaining height */}
                   <div className="flex-1 min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4">
-                    <MarkdownViewer markdown={markdown} onTextSelected={handleTextSelected} />
+                    <MarkdownViewer markdown={currentPageMarkdown} onTextSelected={handleTextSelected} />
                   </div>
 
                   <div className="mt-4 flex flex-col gap-3 shrink-0">
@@ -226,26 +286,13 @@ function App() {
                 <GlassPanel className="relative p-5 shrink-0">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <div className="text-xs uppercase tracking-wider text-white/50">Input</div>
-                      <div className="text-sm text-white/80 mt-1">Your textbook page</div>
+                      <div className="text-xs uppercase tracking-wider text-white/50">Add additional pages</div>
+                      <div className="text-sm text-white/80 mt-1">Upload or take another photo to append a new page</div>
                     </div>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-5 gap-4 items-start">
-                    <div className="sm:col-span-3">
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt="Uploaded"
-                          className="w-full max-h-[200px] object-contain rounded-xl border border-white/10 bg-black/20"
-                        />
-                      ) : (
-                        <div className="h-[180px] rounded-xl border border-dashed border-white/15 bg-white/5" />
-                      )}
-                    </div>
-                    <div className="sm:col-span-2">
-                      <ImageSourcePicker disabled={processing} onPick={uploadToOcr} stackButtons />
-                    </div>
+                  <div className="mt-4">
+                    <ImageSourcePicker disabled={processing} onPick={uploadToOcr} />
                   </div>
 
                   {error && (
@@ -267,10 +314,10 @@ function App() {
                     )}
 
                     {activeTool === 'simplify' && canUseTools && (
-                      <SimplificationPanel text={selectedText} requestId={simplifyRequestId} />
+                      <SimplificationPanel text={selectedText} fullText={allPagesText} requestId={simplifyRequestId} />
                     )}
                     {activeTool === 'explain' && canUseTools && (
-                      <ExplainPanel text={selectedText} requestId={explainRequestId} />
+                      <ExplainPanel text={selectedText} fullText={allPagesText} requestId={explainRequestId} />
                     )}
                     {activeTool === 'tree' && canUseTools && (
                       <KnowledgeTreePanel text={selectedText} requestId={knowledgeTreeRequestId} />

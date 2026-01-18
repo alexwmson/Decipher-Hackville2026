@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 
 function KnowledgeTreePanel({ text, requestId }) {
   const [knowledgeTree, setKnowledgeTree] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const lastHandledRequestIdRef = useRef(0)
+  const abortRef = useRef(null)
 
   useEffect(() => {
     const fetchKnowledgeTree = async () => {
@@ -12,9 +14,14 @@ function KnowledgeTreePanel({ text, requestId }) {
       setError('')
 
       try {
-        const response = await axios.post('/api/knowledge-tree', { text })
+        abortRef.current?.abort?.()
+        const controller = new AbortController()
+        abortRef.current = controller
+
+        const response = await axios.post('/api/knowledge-tree', { text }, { signal: controller.signal })
         setKnowledgeTree(response.data.knowledgeTree)
       } catch (err) {
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return
         setError(err.response?.data?.error || 'Failed to generate knowledge tree')
         console.error('Knowledge tree error:', err)
       } finally {
@@ -25,6 +32,8 @@ function KnowledgeTreePanel({ text, requestId }) {
     // Only fetch when the user explicitly clicks "Knowledge Tree" (requestId changes),
     // not on every highlight/selection change.
     if (requestId && text) {
+      if (lastHandledRequestIdRef.current === requestId) return
+      lastHandledRequestIdRef.current = requestId
       fetchKnowledgeTree()
     }
   }, [requestId])

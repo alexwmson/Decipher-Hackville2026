@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
-function SimplificationPanel({ text, requestId }) {
+function SimplificationPanel({ text, fullText, requestId }) {
   const [simplified, setSimplified] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const lastHandledRequestIdRef = useRef(0)
+  const abortRef = useRef(null)
 
   useEffect(() => {
     const fetchSimplified = async () => {
@@ -15,9 +17,18 @@ function SimplificationPanel({ text, requestId }) {
       setError('')
 
       try {
-        const response = await axios.post('/api/simplify', { text })
+        abortRef.current?.abort?.()
+        const controller = new AbortController()
+        abortRef.current = controller
+
+        const response = await axios.post('/api/simplify', {
+          highlightedText: text,
+          fullText,
+        }, { signal: controller.signal })
         setSimplified(response.data.simplified)
       } catch (err) {
+        // Ignore cancellations (React 18 StrictMode can re-run effects in dev)
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return
         setError(err.response?.data?.error || 'Failed to simplify text')
         console.error('Simplify error:', err)
       } finally {
@@ -28,6 +39,8 @@ function SimplificationPanel({ text, requestId }) {
     // Only fetch when the user explicitly clicks "Simplify" (requestId changes),
     // not on every highlight/selection change.
     if (requestId && text) {
+      if (lastHandledRequestIdRef.current === requestId) return
+      lastHandledRequestIdRef.current = requestId
       fetchSimplified()
     }
   }, [requestId])
