@@ -289,7 +289,7 @@ function App() {
                           setActiveTool('simplify')
                           setSimplifyRequestId((x) => x + 1)
                         }}
-                        className="rounded-xl bg-emerald-500/90 hover:bg-emerald-500 text-white font-semibold px-4 py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full text-center leading-tight rounded-xl bg-emerald-500/90 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm px-2 sm:px-4 py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Simplify
                       </button>
@@ -301,7 +301,7 @@ function App() {
                           setActiveTool('explain')
                           setExplainRequestId((x) => x + 1)
                         }}
-                        className="rounded-xl bg-cyan-500/90 hover:bg-cyan-500 text-white font-semibold px-4 py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full text-center leading-tight rounded-xl bg-cyan-500/90 hover:bg-cyan-500 text-white font-semibold text-xs sm:text-sm px-2 sm:px-4 py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Explain
                       </button>
@@ -313,7 +313,7 @@ function App() {
                           setActiveTool('tree')
                           setKnowledgeTreeRequestId((x) => x + 1)
                         }}
-                        className="rounded-xl bg-fuchsia-500/90 hover:bg-fuchsia-500 text-white font-semibold px-4 py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full text-center leading-tight rounded-xl bg-fuchsia-500/90 hover:bg-fuchsia-500 text-white font-semibold text-xs sm:text-sm px-2 sm:px-4 py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Knowledge Tree
                       </button>
