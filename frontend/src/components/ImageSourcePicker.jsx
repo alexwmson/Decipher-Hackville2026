@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-function ImageSourcePicker({ disabled = false, onPick, stackButtons = false }) {
+function ImageSourcePicker({ disabled = false, onPick, stackButtons = false, uploadTopNote = '' }) {
   const fileInputRef = useRef(null)
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
@@ -126,6 +126,9 @@ function ImageSourcePicker({ disabled = false, onPick, stackButtons = false }) {
               onClick={() => fileInputRef.current?.click()}
               className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left text-white/90 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              {uploadTopNote ? (
+                <div className="text-[11px] text-white/60 italic mb-1">{uploadTopNote}</div>
+              ) : null}
               <div className="text-sm font-semibold">Upload image</div>
               <div className="text-xs text-white/60">PNG/JPG/PDF photo</div>
               <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-cyan-400/20 blur-2xl group-hover:bg-cyan-300/25 transition" />
@@ -149,7 +152,7 @@ function ImageSourcePicker({ disabled = false, onPick, stackButtons = false }) {
             autoPlay
             playsInline
             muted
-            className="w-full rounded-xl border border-white/10"
+            className="w-full max-h-[40vh] object-contain rounded-xl border border-white/10 bg-black/20"
           />
           <canvas ref={canvasRef} className="hidden" />
           <div className="grid grid-cols-2 gap-3">

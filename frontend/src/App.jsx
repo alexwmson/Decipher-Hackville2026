@@ -7,6 +7,7 @@ import ExplainPanel from './components/ExplainPanel'
 import ImageSourcePicker from './components/ImageSourcePicker'
 import GlassPanel from './components/ui/GlassPanel'
 import LoadingOverlay from './components/ui/LoadingOverlay'
+import logoUrl from './assets/logo.svg'
 
 function App() {
   const [view, setView] = useState('landing') // 'landing' | 'main'
@@ -106,7 +107,7 @@ function App() {
   const Brand = (
     <div>
       <div className="inline-flex items-center gap-2">
-        <div className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.65)]" />
+        <img src={logoUrl} alt="Decipher logo" className="h-10 w-10" />
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Decipher</h1>
       </div>
       <p className="text-white/60 text-sm mt-2">Study the indecipherable with ease.</p>
@@ -114,8 +115,8 @@ function App() {
   )
 
   return (
-    <div className="h-dvh overflow-hidden">
-      <div className="mx-auto max-w-6xl px-4 py-6 h-full flex flex-col">
+    <div className="min-h-dvh lg:h-dvh lg:overflow-hidden">
+      <div className="mx-auto max-w-6xl px-4 py-4 sm:py-6 lg:h-full flex flex-col">
         {view === 'main' && (
           <header className="flex items-center justify-between mb-4 shrink-0">
             {Brand}
@@ -137,14 +138,15 @@ function App() {
           </header>
         )}
 
-        <main className="flex-1 min-h-0">
+        {/* On mobile, allow the main area to scroll. On desktop, keep the fixed-height layout. */}
+        <main className="flex-1 lg:min-h-0 overflow-y-auto lg:overflow-hidden">
           {view === 'landing' ? (
             <div
-              className={`grid grid-cols-1 ${imageUrl ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-4 items-stretch h-full`}
+              className={`grid grid-cols-1 ${imageUrl ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-4 items-stretch lg:h-full`}
             >
               <div className="lg:h-full lg:min-h-0 lg:flex lg:flex-col lg:justify-center">
                 <div className="mb-4 lg:mb-6">{Brand}</div>
-                <GlassPanel className="relative p-6 sm:p-7 w-full">
+                <GlassPanel className="relative p-5 sm:p-7 w-full">
                   <div className="mb-5">
                     <h2 className="text-xl sm:text-2xl font-bold text-white/95">
                       Upload a page. Get clarity.
@@ -154,7 +156,11 @@ function App() {
                     </p>
                   </div>
 
-                  <ImageSourcePicker disabled={processing} onPick={uploadToOcr} />
+                  <ImageSourcePicker
+                    disabled={processing}
+                    onPick={uploadToOcr}
+                    uploadTopNote="* Recommended for desktop"
+                  />
 
                   {error && (
                     <div className="mt-4 text-sm text-red-200 bg-red-500/10 border border-red-400/20 rounded-xl px-3 py-2">
@@ -167,7 +173,7 @@ function App() {
               </div>
 
               {imageUrl ? (
-                <GlassPanel className="relative p-6 sm:p-7 overflow-hidden flex flex-col">
+                <GlassPanel className="relative p-5 sm:p-7 overflow-hidden flex flex-col">
                   <div className="text-sm text-white/60 mb-3 shrink-0">Preview</div>
                   <div className="flex-1 min-h-0">
                     <div className="relative h-full">
@@ -182,10 +188,10 @@ function App() {
               ) : null}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:h-full lg:min-h-0">
               {/* Left column: extracted (gets the most vertical room) */}
-              <div className="lg:col-span-7 min-h-0">
-                <GlassPanel className="p-5 h-full flex flex-col min-h-0">
+              <div className="lg:col-span-7 lg:min-h-0">
+                <GlassPanel className="p-4 sm:p-5 lg:h-full flex flex-col lg:min-h-0">
                   <div className="flex items-center justify-between mb-3 shrink-0">
                     <div>
                       <div className="text-xs uppercase tracking-wider text-white/50">Extracted</div>
@@ -230,7 +236,7 @@ function App() {
                   </div>
 
                   {/* Scrollable extracted content that fills remaining height */}
-                  <div className="flex-1 min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex-1 lg:min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4">
                     <MarkdownViewer markdown={currentPageMarkdown} onTextSelected={handleTextSelected} />
                   </div>
 
@@ -282,8 +288,8 @@ function App() {
               </div>
 
               {/* Right column: input (top) + output (bottom) */}
-              <div className="lg:col-span-5 min-h-0 flex flex-col gap-4">
-                <GlassPanel className="relative p-5 shrink-0">
+              <div className="lg:col-span-5 lg:min-h-0 flex flex-col gap-4">
+                <GlassPanel className="relative p-4 sm:p-5 shrink-0">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="text-xs uppercase tracking-wider text-white/50">Add additional pages</div>
@@ -304,9 +310,9 @@ function App() {
                   <LoadingOverlay show={processing} label="Processing..." />
                 </GlassPanel>
 
-                <GlassPanel className="p-5 flex-1 min-h-0 flex flex-col">
+                <GlassPanel className="p-4 sm:p-5 lg:flex-1 lg:min-h-0 flex flex-col">
                   <div className="text-xs uppercase tracking-wider text-white/50 mb-2 shrink-0">Output</div>
-                  <div className="flex-1 min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex-1 lg:min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4">
                     {!activeTool && (
                       <div className="text-white/60 text-sm py-10 text-center">
                         Choose a tool below the extracted content to see results here.
