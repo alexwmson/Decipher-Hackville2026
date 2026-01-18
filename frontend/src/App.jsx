@@ -192,10 +192,10 @@ function App() {
               {/* Left column: extracted (gets the most vertical room) */}
               <div className="lg:col-span-7 lg:min-h-0">
                 <GlassPanel className="p-4 sm:p-5 lg:h-full flex flex-col lg:min-h-0">
-                  <div className="flex items-center justify-between mb-3 shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3 shrink-0">
                     <div>
                       <div className="text-xs uppercase tracking-wider text-white/50">Extracted</div>
-                      <div className="text-sm text-white/80 mt-1">Highlight text to use tools</div>
+                      <div className="text-sm text-white/80 mt-1 whitespace-nowrap">Highlight text to use tools</div>
                     </div>
                     <div className="flex items-center gap-2">
                       {selectedText ? (
@@ -206,7 +206,7 @@ function App() {
                           Clear selection
                         </button>
                       ) : null}
-                      <div className="text-xs text-white/55">
+                      <div className="text-xs text-white/55 whitespace-nowrap">
                         Page <span className="text-white/80">{Math.min(currentPageIndex + 1, Math.max(1, pages.length))}</span>
                         {' '}of <span className="text-white/80">{Math.max(1, pages.length)}</span>
                       </div>

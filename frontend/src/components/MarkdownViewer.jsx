@@ -5,6 +5,7 @@ import rehypeKatex from 'rehype-katex'
 
 function MarkdownViewer({ markdown, onTextSelected, className = '' }) {
   const containerRef = useRef(null)
+  const lastSelectedRef = useRef('')
 
   useEffect(() => {
     const container = containerRef.current
@@ -33,18 +34,35 @@ function MarkdownViewer({ markdown, onTextSelected, className = '' }) {
       return (wrapper.textContent || '').replace(/\s+/g, ' ').trim()
     }
 
-    const handleMouseUp = () => {
+    const emitSelectionIfAny = () => {
       const selectedText = getCleanSelectedText()
       
-      if (selectedText) {
+      if (selectedText && selectedText !== lastSelectedRef.current) {
+        lastSelectedRef.current = selectedText
         onTextSelected(selectedText)
       }
     }
 
-    container.addEventListener('mouseup', handleMouseUp)
+    let rafId = null
+    const scheduleEmit = () => {
+      if (rafId) cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        emitSelectionIfAny()
+      })
+    }
+
+    // Desktop mouse selection
+    container.addEventListener('mouseup', scheduleEmit)
+    // Mobile: selection happens via long-press + drag handles; touchend/selectionchange are needed.
+    container.addEventListener('touchend', scheduleEmit, { passive: true })
+    document.addEventListener('selectionchange', scheduleEmit)
 
     return () => {
-      container.removeEventListener('mouseup', handleMouseUp)
+      if (rafId) cancelAnimationFrame(rafId)
+      container.removeEventListener('mouseup', scheduleEmit)
+      container.removeEventListener('touchend', scheduleEmit)
+      document.removeEventListener('selectionchange', scheduleEmit)
     }
   }, [onTextSelected])
 
