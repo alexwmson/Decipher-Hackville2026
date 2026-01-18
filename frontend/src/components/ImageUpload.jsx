@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 
 function ImageUpload({ onImageProcessed }) {
@@ -9,6 +9,16 @@ function ImageUpload({ onImageProcessed }) {
   const canvasRef = useRef(null)
   const [showCamera, setShowCamera] = useState(false)
   const [stream, setStream] = useState(null)
+
+  // Attach the stream after the <video> mounts; otherwise srcObject assignment
+  // can be missed on the first open (black preview + capture fails).
+  useEffect(() => {
+    const videoEl = videoRef.current
+    if (!showCamera || !stream || !videoEl) return
+    videoEl.srcObject = stream
+    const playPromise = videoEl.play?.()
+    if (playPromise?.catch) playPromise.catch(() => {})
+  }, [showCamera, stream])
 
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0]
@@ -78,9 +88,6 @@ function ImageUpload({ onImageProcessed }) {
       }
 
       setStream(mediaStream)
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-      }
       setShowCamera(true)
     } catch (err) {
       const name = err?.name || 'Error'
@@ -105,6 +112,7 @@ function ImageUpload({ onImageProcessed }) {
   }
 
   const stopCamera = () => {
+    if (videoRef.current) videoRef.current.srcObject = null
     if (stream) {
       stream.getTracks().forEach(track => track.stop())
       setStream(null)
@@ -116,9 +124,16 @@ function ImageUpload({ onImageProcessed }) {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current
       const video = videoRef.current
+
+      if (!video.videoWidth || !video.videoHeight) {
+        setError('Camera not ready yet — please wait a moment and try Capture again.')
+        return
+      }
+
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
       const ctx = canvas.getContext('2d')
+      if (!ctx) return
       ctx.drawImage(video, 0, 0)
       
       canvas.toBlob(async (blob) => {
@@ -168,6 +183,7 @@ function ImageUpload({ onImageProcessed }) {
             ref={videoRef}
             autoPlay
             playsInline
+            muted
             className="w-full rounded-lg"
           />
           <canvas ref={canvasRef} className="hidden" />

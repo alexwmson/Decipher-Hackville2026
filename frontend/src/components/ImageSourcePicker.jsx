@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-function ImageSourcePicker({ disabled = false, onPick }) {
+function ImageSourcePicker({ disabled = false, onPick, stackButtons = false }) {
   const fileInputRef = useRef(null)
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
@@ -8,7 +8,24 @@ function ImageSourcePicker({ disabled = false, onPick }) {
   const [stream, setStream] = useState(null)
   const [error, setError] = useState('')
 
+  // When the camera UI mounts, attach the stream to the <video>.
+  // (On first open, the stream is created before the <video> exists.)
+  useEffect(() => {
+    const videoEl = videoRef.current
+    if (!showCamera || !stream || !videoEl) return
+
+    videoEl.srcObject = stream
+    const playPromise = videoEl.play?.()
+    if (playPromise?.catch) {
+      playPromise.catch(() => {
+        // If autoplay is blocked, the user can still tap Capture after the video starts;
+        // leaving this silent avoids noisy errors.
+      })
+    }
+  }, [showCamera, stream])
+
   const stopCamera = () => {
+    if (videoRef.current) videoRef.current.srcObject = null
     if (stream) {
       stream.getTracks().forEach((t) => t.stop())
       setStream(null)
@@ -38,7 +55,6 @@ function ImageSourcePicker({ disabled = false, onPick }) {
 
       setStream(mediaStream)
       setShowCamera(true)
-      if (videoRef.current) videoRef.current.srcObject = mediaStream
     } catch (err) {
       const name = err?.name || 'Error'
       if (name === 'NotAllowedError') {
@@ -57,9 +73,18 @@ function ImageSourcePicker({ disabled = false, onPick }) {
     if (!videoRef.current || !canvasRef.current) return
     const video = videoRef.current
     const canvas = canvasRef.current
+
+    // If the stream hasn't started rendering yet, dimensions will be 0 and
+    // the captured image will be blank/black.
+    if (!video.videoWidth || !video.videoHeight) {
+      setError('Camera not ready yet — please wait a moment and try Capture again.')
+      return
+    }
+
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
     const ctx = canvas.getContext('2d')
+    if (!ctx) return
     ctx.drawImage(video, 0, 0)
 
     canvas.toBlob((blob) => {
@@ -81,6 +106,8 @@ function ImageSourcePicker({ disabled = false, onPick }) {
     onPick?.(file)
   }
 
+  const pickButtonsLayoutClass = stackButtons ? 'grid-cols-1' : 'grid-cols-2'
+
   return (
     <div className="space-y-3">
       {!showCamera ? (
@@ -93,7 +120,7 @@ function ImageSourcePicker({ disabled = false, onPick }) {
             onChange={onFileChange}
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid ${pickButtonsLayoutClass} gap-3`}>
             <button
               disabled={disabled}
               onClick={() => fileInputRef.current?.click()}
@@ -117,7 +144,13 @@ function ImageSourcePicker({ disabled = false, onPick }) {
         </>
       ) : (
         <div className="space-y-3">
-          <video ref={videoRef} autoPlay playsInline className="w-full rounded-xl border border-white/10" />
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full rounded-xl border border-white/10"
+          />
           <canvas ref={canvasRef} className="hidden" />
           <div className="grid grid-cols-2 gap-3">
             <button
